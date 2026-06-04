@@ -1,0 +1,159 @@
+{
+  "project": {
+    "name": "Inventory Order Management System",
+    "short_name": "IMS",
+    "state": "planned",
+    "spec_mode": "follow_master_prompt_and_supporting_docs",
+    "repo_remote": "https://github.com/neekuujii2/Inventory_Order_Management_System.git"
+  },
+  "sources": [
+    "0_MASTER_PROMPT.md",
+    "1_PRD.md",
+    "2_TRD.md",
+    "3_Backend_Schema.md",
+    "4_App_Flow.md",
+    "5_UIUX_Design.md",
+    "6_Implementation_Plan.md"
+  ],
+  "phases": [
+    {
+      "id": "phase-0",
+      "name": "Repository And Setup",
+      "status": "in_progress",
+      "items": [
+        {
+          "id": "git-init",
+          "title": "Initialize dedicated git repository",
+          "status": "implemented"
+        },
+        {
+          "id": "readme-base",
+          "title": "Add base README",
+          "status": "implemented"
+        },
+        {
+          "id": "gitignore-base",
+          "title": "Add base gitignore",
+          "status": "implemented"
+        },
+        {
+          "id": "github-push-initial",
+          "title": "Push planning docs to GitHub",
+          "status": "implemented"
+        },
+        {
+          "id": "backend-scaffold",
+          "title": "Create backend scaffold",
+          "status": "planned"
+        },
+        {
+          "id": "frontend-scaffold",
+          "title": "Create frontend scaffold",
+          "status": "planned"
+        },
+        {
+          "id": "root-config",
+          "title": "Create root compose and env example",
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "id": "phase-1",
+      "name": "Backend",
+      "status": "planned",
+      "items": [
+        {
+          "id": "backend-core",
+          "title": "Config, database, main app, Docker files",
+          "status": "planned"
+        },
+        {
+          "id": "backend-models",
+          "title": "Product, customer, and order models",
+          "status": "planned"
+        },
+        {
+          "id": "backend-schemas",
+          "title": "Pydantic schemas",
+          "status": "planned"
+        },
+        {
+          "id": "backend-crud",
+          "title": "CRUD and transactional order creation",
+          "status": "planned"
+        },
+        {
+          "id": "backend-routers",
+          "title": "Products, customers, orders, dashboard routers",
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "id": "phase-2",
+      "name": "Frontend",
+      "status": "planned",
+      "items": [
+        {
+          "id": "frontend-core",
+          "title": "Vite app, dependencies, routes, global styles",
+          "status": "planned"
+        },
+        {
+          "id": "frontend-layout-ui",
+          "title": "Layout and shared UI components",
+          "status": "planned"
+        },
+        {
+          "id": "frontend-pages",
+          "title": "All required pages",
+          "status": "planned"
+        },
+        {
+          "id": "frontend-behavior",
+          "title": "Forms, toasts, kanban, chart, responsive behavior",
+          "status": "planned"
+        },
+        {
+          "id": "frontend-container",
+          "title": "Frontend Docker and nginx config",
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "id": "phase-3",
+      "name": "Integration And Verification",
+      "status": "planned",
+      "items": [
+        {
+          "id": "compose-integration",
+          "title": "Docker Compose and environment wiring",
+          "status": "planned"
+        },
+        {
+          "id": "functional-verification",
+          "title": "Endpoint and workflow verification",
+          "status": "planned"
+        },
+        {
+          "id": "docs-finalization",
+          "title": "Complete README and delivery docs",
+          "status": "planned"
+        }
+      ]
+    }
+  ],
+  "current_focus": {
+    "phase": "phase-0",
+    "item": "backend-scaffold",
+    "next_action": "Create backend and frontend scaffolding according to the spec"
+  },
+  "session_notes": [
+    {
+      "date": "2026-06-04",
+      "summary": "Analyzed planning documents, created dedicated git repo, pushed initial commit, and started project tracking files."
+    }
+  ]
+}
