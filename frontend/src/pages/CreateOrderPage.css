@@ -1,0 +1,99 @@
+.order-form-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 968px) {
+  .order-form-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.order-form-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+}
+
+.order-section-title {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(71, 85, 105, 0.4);
+  padding-bottom: 0.5rem;
+}
+
+.customer-select-wrapper {
+  margin-bottom: 1.5rem;
+}
+
+.line-items-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.25fr 40px;
+  gap: 1rem;
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  padding: 0 0.5rem;
+}
+
+.line-item-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.25fr 40px;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.line-item-subtotal {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  background-color: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.625rem 0.875rem;
+  height: 42px;
+  display: flex;
+  align-items: center;
+}
+
+/* Summary Card */
+.order-summary-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  position: sticky;
+  top: 80px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.summary-row.total {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  margin-top: 1rem;
+  font-size: 1.15rem;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.summary-value-total {
+  font-family: var(--font-mono);
+  color: var(--accent);
+}

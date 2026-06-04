@@ -1,21 +1,50 @@
-# Inventory Order Management System
+# Inventory Order Management System (IMS)
 
-This repository contains the planning and specification documents for an Inventory & Order Management System (IMS).
+## Overview
+IMS is a comprehensive system built for managing products, customers, and orders with full transaction support. It features a modern React frontend and a FastAPI backend powered by PostgreSQL.
 
-## Included documents
+## Features
+- **Products**: Manage your product catalog, prices, and stock.
+- **Customers**: Maintain your customer base with detailed information.
+- **Orders**: Create orders transactionally with automatic stock reduction.
+- **Dashboard**: Get insights into revenue, low stock items, and recent activity.
 
-- `0_MASTER_PROMPT.md` - end-to-end build prompt and target stack
-- `1_PRD.md` - product requirements and scope
-- `2_TRD.md` - technical architecture and API requirements
-- `3_Backend_Schema.md` - schema, models, and transaction rules
-- `4_App_Flow.md` - route map and user/application flows
-- `5_UIUX_Design.md` - visual system and UI behavior
-- `6_Implementation_Plan.md` - phased delivery plan
+## Tech Stack
+- **Frontend**: React 19, Vite, React Router, React Query, Zustand, React Hook Form.
+- **Backend**: FastAPI, SQLAlchemy, Pydantic, PostgreSQL.
+- **Containerization**: Docker & Docker Compose.
 
-## Current status
+## Running Locally
 
-The repository currently contains analysis and planning artifacts. Application source code has not been scaffolded yet.
+### Using Docker Compose (Recommended)
+1. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+2. Start the services:
+   ```bash
+   docker-compose up --build
+   ```
+3. Access the application:
+   - Frontend: `http://localhost:8080`
+   - Backend API Docs: `http://localhost:8000/docs`
 
-## Next step
+### Manual Setup
+**Backend**:
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate # or venv\Scripts\activate on Windows
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
 
-Use `0_MASTER_PROMPT.md` together with the six supporting documents to implement the backend, frontend, Docker setup, and deployment configuration.
+**Frontend**:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## Architecture Details
+The system utilizes a transactional order creation process. When an order is placed, PostgreSQL row-level locks (`with_for_update()`) are acquired to prevent race conditions during concurrent requests.

@@ -1,0 +1,32 @@
+/* frontend/src/components/layout/FeaturesSection.css */
+.features-section {
+  padding: 4rem 0;
+}
+.features-title {
+  text-align: center;
+  margin-bottom: 3rem;
+  font-family: var(--font-heading);
+}
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+.feature-card {
+  padding: 2rem;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: transform var(--transition-normal);
+}
+.feature-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent);
+}
+.feature-card-title {
+  margin-bottom: 1rem;
+  font-family: var(--font-heading);
+}
+.feature-card-desc {
+  color: var(--text-secondary);
+}
