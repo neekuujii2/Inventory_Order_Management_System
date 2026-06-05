@@ -1,50 +1,343 @@
-# Inventory Order Management System (IMS)
+# Inventory & Order Management System (IMS)
 
-## Overview
-IMS is a comprehensive system built for managing products, customers, and orders with full transaction support. It features a modern React frontend and a FastAPI backend powered by PostgreSQL.
+A modern, full-stack web application for managing products, customers, and orders. Built with React, FastAPI, PostgreSQL, and Docker.
 
-## Features
-- **Products**: Manage your product catalog, prices, and stock.
-- **Customers**: Maintain your customer base with detailed information.
-- **Orders**: Create orders transactionally with automatic stock reduction.
-- **Dashboard**: Get insights into revenue, low stock items, and recent activity.
+**Live Demo**: [Deployed on Vercel + Render](https://inventory-order-management-system-ten-nu.vercel.app)
 
-## Tech Stack
-- **Frontend**: React 19, Vite, React Router, React Query, Zustand, React Hook Form.
-- **Backend**: FastAPI, SQLAlchemy, Pydantic, PostgreSQL.
-- **Containerization**: Docker & Docker Compose.
+## 🎯 Features
 
-## Running Locally
+- 📦 **Product Management** — Create, update, and delete products with inventory tracking
+- 👥 **Customer Database** — Manage customer information and contact details
+- 🛒 **Order Management** — Create and track orders with real-time status updates
+- 📊 **Dashboard** — Real-time KPIs, kanban board, and revenue charts
+- ⚠️ **Low Stock Alerts** — Automatic warnings for items below threshold
+- 🎨 **Premium UI** — Dark theme with teal accents, professional design
+- 📱 **Responsive Design** — Works perfectly on desktop, tablet, and mobile
+- 🚀 **Docker Ready** — Complete Docker Compose setup for local and cloud deployment
 
-### Using Docker Compose (Recommended)
-1. Copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-2. Start the services:
-   ```bash
-   docker-compose up --build
-   ```
-3. Access the application:
-   - Frontend: `http://localhost:8080`
-   - Backend API Docs: `http://localhost:8000/docs`
+---
 
-### Manual Setup
-**Backend**:
+## 🛠️ Tech Stack
+
+### Backend
+- **Framework**: FastAPI (Python 3.11)
+- **Database**: PostgreSQL 15
+- **ORM**: SQLAlchemy 2.0
+- **Migration**: Alembic
+- **Deployment**: Docker, Render
+
+### Frontend
+- **Framework**: React 19 + Vite
+- **Styling**: CSS Variables + Custom CSS (Design System)
+- **State Management**: React Query + Zustand
+- **Forms**: React Hook Form
+- **UI Components**: Custom + react-hot-toast
+- **Charts**: Recharts
+- **Routing**: React Router v6
+- **Deployment**: Vercel
+
+### Infrastructure
+- **Containerization**: Docker & Docker Compose
+- **Web Server**: Nginx
+- **Package Manager**: npm / pip
+
+---
+
+## ⚡ Quick Start
+
+### Prerequisites
+- Docker & Docker Compose v2 (recommended)
+- OR: Node.js 18+, Python 3.11+, PostgreSQL 15
+
+### Option 1: Docker Compose (Recommended)
+
+```bash
+# Clone or navigate to project
+cd Inventory
+
+# Create .env from example
+cp .env.example .env
+
+# Start all services
+docker-compose up -d
+
+# Access the application
+# Frontend: http://localhost (or http://localhost:8080)
+# Backend: http://localhost:8000
+# API Docs: http://localhost:8000/docs
+```
+
+### Option 2: Local Development
+
+**Backend:**
 ```bash
 cd backend
+
+# Create virtual environment
 python -m venv venv
-source venv/bin/activate # or venv\Scripts\activate on Windows
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Set up database
+export DATABASE_URL="postgresql://imsuser:password@localhost:5432/imsdb"
+
+# Run migrations
+alembic upgrade head
+
+# Start server
 uvicorn app.main:app --reload
 ```
 
-**Frontend**:
+**Frontend:**
 ```bash
 cd frontend
+
+# Install dependencies
 npm install
+
+# Create .env.local
+cp .env.example .env.local
+
+# Start dev server
 npm run dev
+# Visit http://localhost:5173
 ```
 
-## Architecture Details
-The system utilizes a transactional order creation process. When an order is placed, PostgreSQL row-level locks (`with_for_update()`) are acquired to prevent race conditions during concurrent requests.
+---
+
+## 📋 Configuration
+
+### Environment Variables
+
+Create `.env` file in root:
+
+```env
+# Database
+POSTGRES_USER=imsuser
+POSTGRES_PASSWORD=changeme_strong_password
+POSTGRES_DB=imsdb
+DATABASE_URL=postgresql://imsuser:changeme_strong_password@localhost:5432/imsdb
+
+# CORS
+CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+
+# Frontend API
+VITE_API_URL=http://localhost:8000
+```
+
+See [.env.example](.env.example) for all options.
+
+---
+
+## 📚 API Documentation
+
+Visit: http://localhost:8000/docs (Swagger UI)
+
+### Main Endpoints
+
+```
+GET  /health                    — Health check
+GET  /dashboard/stats           — Dashboard KPIs
+GET  /products                  — List all products
+POST /products                  — Create product
+PUT  /products/{id}             — Update product
+DELETE /products/{id}           — Delete product
+GET  /customers                 — List customers
+POST /customers                 — Create customer
+DELETE /customers/{id}          — Delete customer
+GET  /orders                    — List orders
+POST /orders                    — Create order (with transaction)
+GET  /orders/{id}               — Get order details
+DELETE /orders/{id}             — Cancel order
+```
+
+---
+
+## 📁 Project Structure
+
+```
+Inventory/
+├── backend/                    # FastAPI application
+│   ├── app/
+│   │   ├── main.py            # Entry point
+│   │   ├── config.py          # Configuration
+│   │   ├── database.py        # Database setup
+│   │   ├── models/            # SQLAlchemy models
+│   │   ├── schemas/           # Pydantic schemas
+│   │   ├── crud/              # CRUD operations
+│   │   └── routers/           # API routes
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── alembic/               # Database migrations
+│
+├── frontend/                   # React application
+│   ├── src/
+│   │   ├── pages/             # Page components
+│   │   ├── components/        # UI components
+│   │   ├── services/          # API layer
+│   │   ├── styles/            # Global styles
+│   │   ├── App.jsx            # Root
+│   │   └── main.jsx           # Entry point
+│   ├── package.json
+│   ├── vite.config.js
+│   └── Dockerfile
+│
+├── docker-compose.yml         # Container orchestration
+├── .env.example               # Environment template
+├── RENDER_DEPLOYMENT.md       # Cloud deployment guide
+└── README.md                  # This file
+```
+
+---
+
+## 🚀 Deployment
+
+### Render (Recommended)
+
+See detailed guide in [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)
+
+Quick steps:
+1. Create PostgreSQL database
+2. Deploy backend (Docker)
+3. Deploy frontend (Static Site)
+4. Connect with environment variables
+
+**Available on free tier** (with limitations)
+
+### Other Platforms
+
+Works with AWS, Google Cloud, Azure, DigitalOcean, Heroku, etc.
+
+---
+
+## 🔧 Development
+
+### Database Migrations
+
+```bash
+cd backend
+
+# Create new migration
+alembic revision --autogenerate -m "Description"
+
+# Apply migrations
+alembic upgrade head
+
+# Revert
+alembic downgrade -1
+```
+
+### Build for Production
+
+```bash
+# Backend
+cd backend
+docker build -t ims-backend:latest .
+
+# Frontend
+cd frontend
+npm run build
+# Output: dist/
+```
+
+---
+
+## ✨ Key Features Explained
+
+### Dashboard
+- Real-time KPI cards (products, customers, orders, low stock)
+- Kanban board for order status management
+- 30-day revenue chart visualization
+
+### Products
+- Create, read, update, delete operations
+- SKU uniqueness validation
+- Automatic low-stock warnings
+
+### Orders
+- Multi-product order creation
+- Real-time stock validation
+- Automatic total calculation
+- Order history and tracking
+
+### UI/UX
+- Dark theme with teal accents
+- Responsive grid layouts
+- Skeleton loading states
+- Toast notifications
+- Smooth animations
+
+---
+
+## 🐛 Troubleshooting
+
+### "Unable to connect to server"
+- Check backend is running: `docker-compose ps`
+- Verify VITE_API_URL is correct
+- Check CORS_ORIGINS includes frontend URL
+
+### Database connection failed
+- Verify DATABASE_URL format
+- Check PostgreSQL is running
+- Verify credentials in .env
+
+### CORS errors
+- Add frontend URL to CORS_ORIGINS
+- Use https:// for production domains
+- Restart backend after changes
+
+### Port conflicts
+- Change port in docker-compose.yml
+- Or kill process: `lsof -i :8000` → `kill -9 <PID>`
+
+---
+
+## 📊 Performance Tips
+
+1. Add database indexes for frequent queries
+2. React Query caching is pre-configured
+3. Optimize product images before upload
+4. Consider pagination for large datasets
+5. Use React.memo for expensive components
+
+---
+
+## 🔒 Security
+
+- ✅ Environment variables for secrets (no hardcoding)
+- ✅ Database user with limited permissions
+- ✅ CORS origin validation
+- ✅ Input validation on all endpoints
+- 📋 TODO: Add authentication (JWT)
+- 📋 TODO: Add rate limiting
+- 📋 TODO: Add data encryption
+
+---
+
+## 📖 Docs
+
+- API Docs: http://localhost:8000/docs
+- Frontend env: See [frontend/.env.example](frontend/.env.example)
+- Backend env: See [backend/.env.example](backend/.env.example)
+- Deployment: See [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] User authentication (login/register)
+- [ ] Order history and analytics
+- [ ] Inventory forecasting
+- [ ] Email notifications
+- [ ] Payment integration
+- [ ] Export reports (PDF/CSV)
+- [ ] Mobile app (React Native)
+- [ ] Real-time notifications (WebSocket)
+
+---
+
+**Built with ❤️ using React, FastAPI, and PostgreSQL**
+
+For help, check the troubleshooting section or review application logs: `docker-compose logs -f`

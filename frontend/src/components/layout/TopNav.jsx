@@ -20,7 +20,12 @@ export default function TopNav() {
       <div className="topnav-container">
         <Link to="/" className="logo-link" onClick={closeMenu}>
           <span className="logo-icon"></span>
-          <span>[IMS]</span>
+          <div className="logo-text">
+            <span className="logo-bracket">[</span>
+            <span className="logo-ims">IMS</span>
+            <span className="logo-bracket">]</span>
+          </div>
+          <span className="logo-subtitle">Inventory Management System</span>
         </Link>
 
         {/* Desktop Links */}

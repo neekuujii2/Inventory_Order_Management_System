@@ -41,7 +41,10 @@ def get_stats(db: Session = Depends(get_db)):
         .scalars()
         .all()
     )
-    recent_revenue = db.execute(select(func.coalesce(func.sum(Order.total_amount), 0))).scalar_one()
+    # Calculate revenue from non-cancelled orders
+    recent_revenue = db.execute(
+        select(func.coalesce(func.sum(Order.total_amount), 0)).where(Order.status != "cancelled")
+    ).scalar_one()
 
     return DashboardStatsResponse(
         total_products=total_products,
