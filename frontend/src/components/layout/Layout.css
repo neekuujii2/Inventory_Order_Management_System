@@ -1,12 +1,31 @@
-.layout-container {
-  display: flex;
-  flex-direction: column;
+.app-shell {
   min-height: 100vh;
-  background-color: var(--bg-base);
 }
 
-.layout-content {
-  flex: 1 0 auto;
+.app-shell__body {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-shell__content {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
+  padding-left: 304px;
+}
+
+.app-shell__page {
+  flex: 1;
+  padding: 1.5rem 0 2rem;
+}
+
+@media (max-width: 1080px) {
+  .app-shell__content {
+    padding-left: 0;
+  }
+
+  .app-shell__page {
+    padding-top: 5.5rem;
+  }
 }

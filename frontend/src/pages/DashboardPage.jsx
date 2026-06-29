@@ -1,47 +1,27 @@
-import React from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useMemo } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { getStats } from '../services/dashboard';
-import { getOrders, updateOrderStatus } from '../services/orders';
+import {
+  AlertTriangle,
+  Boxes,
+  DollarSign,
+  Package,
+  ShoppingCart,
+  Sparkles,
+  Users,
+} from 'lucide-react';
+
+import KanbanBoard from '../components/dashboard/KanbanBoard';
 import MetricCard from '../components/dashboard/MetricCard';
 import RevenueChart from '../components/dashboard/RevenueChart';
-import KanbanBoard from '../components/dashboard/KanbanBoard';
 import { SkeletonCards, SkeletonChart, SkeletonTable } from '../components/ui/Skeleton';
+import { getStats } from '../services/dashboard';
+import { getOrders, updateOrderStatus } from '../services/orders';
 import './DashboardPage.css';
 
-// SVG Icons for Metric Cards
-const ProductIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-    <line x1="12" y1="22.08" x2="12" y2="12"></line>
-  </svg>
-);
-
-const CustomerIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-    <circle cx="9" cy="7" r="4"></circle>
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-  </svg>
-);
-
-const OrderIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="9" cy="21" r="1"></circle>
-    <circle cx="20" cy="21" r="1"></circle>
-    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-  </svg>
-);
-
-const WarningIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-    <line x1="12" y1="9" x2="12" y2="13"></line>
-    <line x1="12" y1="17" x2="12.01" y2="17"></line>
-  </svg>
-);
+const currency = (value) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value ?? 0);
 
 export default function DashboardPage() {
   const queryClient = useQueryClient();
@@ -51,105 +31,195 @@ export default function DashboardPage() {
     queryFn: getStats,
   });
 
-  const { data: orders, isLoading: ordersLoading, error: ordersError } = useQuery({
+  const { data: orders = [], isLoading: ordersLoading, error: ordersError } = useQuery({
     queryKey: ['orders'],
-    queryFn: getOrders,
+    queryFn: () => getOrders({ limit: 100 }),
   });
 
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }) => updateOrderStatus(id, status),
     onSuccess: (data) => {
-      toast.success(`Order #${data.id} marked as ${data.status}`);
-      queryClient.invalidateQueries(['orders']);
-      queryClient.invalidateQueries(['dashboardStats']);
+      toast.success(`Order #${data.id} moved to ${data.status}`);
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
     },
-    onError: (err) => {
-      toast.error(err.message || 'Failed to update order status');
+    onError: (error) => {
+      toast.error(error.message || 'Failed to update order status');
     },
   });
 
-  const handleStatusChange = (id, newStatus) => {
-    updateStatusMutation.mutate({ id, status: newStatus });
-  };
+  const metrics = useMemo(() => {
+    const pendingOrders = orders.filter((order) => order.status === 'pending').length;
+    const fulfilledOrders = orders.filter((order) => order.status === 'fulfilled').length;
+    const revenue = orders
+      .filter((order) => order.status !== 'cancelled')
+      .reduce((sum, order) => sum + parseFloat(order.total_amount ?? 0), 0);
 
-  const isLoading = statsLoading || ordersLoading;
-  const isError = statsError || ordersError;
+    return {
+      pendingOrders,
+      fulfilledOrders,
+      revenue,
+      lowStockCount: stats?.low_stock?.length ?? 0,
+    };
+  }, [orders, stats]);
 
-  if (isError) {
+  if (statsError || ordersError) {
     return (
-      <div className="container">
-        <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)' }}>
-          <h2 style={{ color: 'var(--danger)', marginBottom: '0.5rem' }}>Failed to Load Dashboard</h2>
-          <p className="text-secondary">Please check if the backend API server is running.</p>
+      <div className="container page-stack">
+        <div className="surface-card error-state">
+          <div>
+            <h2>Unable to load the operations dashboard</h2>
+            <p className="page-subtitle">Check the backend API and refresh the workspace.</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container dashboard-page">
-      <div className="dashboard-title-wrapper">
-        <h1 className="dashboard-title">Dashboard Overview</h1>
-        <p className="dashboard-subtitle">Real-time metrics, status kanban, and revenue flow</p>
-      </div>
+    <div className="container page-stack dashboard-page">
+      <section className="surface-card hero-banner">
+        <div className="hero-grid">
+          <div className="dashboard-hero__copy">
+            <span className="eyebrow">Executive overview</span>
+            <h2 className="section-title">Operational visibility across stock, orders, revenue, and exception handling.</h2>
+            <p className="page-subtitle">
+              Keep fulfillment moving with real-time summaries, low-stock awareness, and a drag-and-drop order pipeline designed for fast daily operations.
+            </p>
+            <div className="hero-actions">
+              <span className="glass-pill">
+                <Sparkles size={14} />
+                Live performance pulse
+              </span>
+              <span className="glass-pill">
+                <Boxes size={14} />
+                Warehouse-ready workflow
+              </span>
+            </div>
+          </div>
 
-      {isLoading ? (
+          <div className="mini-stat-grid">
+            <div className="mini-stat">
+              <span className="text-secondary">Revenue tracked</span>
+              <span className="mini-stat-value">{currency(metrics.revenue)}</span>
+            </div>
+            <div className="mini-stat">
+              <span className="text-secondary">Pending orders</span>
+              <span className="mini-stat-value">{metrics.pendingOrders}</span>
+            </div>
+            <div className="mini-stat">
+              <span className="text-secondary">Low stock alerts</span>
+              <span className="mini-stat-value">{metrics.lowStockCount}</span>
+            </div>
+            <div className="mini-stat">
+              <span className="text-secondary">Fulfilled orders</span>
+              <span className="mini-stat-value">{metrics.fulfilledOrders}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {statsLoading || ordersLoading ? (
         <>
-          <div style={{ marginBottom: '2rem' }}>
-            <SkeletonCards />
-          </div>
-          <div style={{ marginBottom: '2.5rem' }}>
-            <SkeletonChart />
-          </div>
-          <div>
-            <SkeletonTable rows={4} cols={3} />
-          </div>
+          <SkeletonCards />
+          <SkeletonChart />
+          <SkeletonTable rows={4} cols={4} />
         </>
       ) : (
         <>
-          {/* KPI Metrics */}
-          <div className="dashboard-stats-grid">
+          <section className="dashboard-grid">
             <MetricCard
-              label="Total Products"
+              label="Products under management"
               value={stats.total_products}
-              subtext="Active inventory items"
-              icon={<ProductIcon />}
+              subtext="SKUs currently available in inventory."
+              icon={<Package size={24} />}
               type="info"
+              trend="Updated live"
             />
             <MetricCard
-              label="Total Customers"
+              label="Customer accounts"
               value={stats.total_customers}
-              subtext="Registered clients"
-              icon={<CustomerIcon />}
+              subtext="Registered buyers and active company contacts."
+              icon={<Users size={24} />}
               type="success"
+              trend="CRM synced"
             />
             <MetricCard
-              label="Total Orders"
+              label="Orders processed"
               value={stats.total_orders}
-              subtext="Processed sales"
-              icon={<OrderIcon />}
+              subtext="Open and completed sales orders across channels."
+              icon={<ShoppingCart size={24} />}
               type="info"
+              trend={`${metrics.pendingOrders} pending`}
             />
             <MetricCard
-              label="Low Stock Items"
+              label="Low-stock attention"
               value={stats.low_stock.length}
-              subtext="Stock quantity < 10"
-              icon={<WarningIcon />}
+              subtext="Items below the threshold and at risk of delay."
+              icon={<AlertTriangle size={24} />}
               type={stats.low_stock.length > 0 ? 'warning' : 'success'}
+              trend={stats.low_stock.length > 0 ? 'Action needed' : 'Healthy'}
             />
-          </div>
+          </section>
 
-          {/* Revenue Chart */}
-          <div className="dashboard-chart-section">
+          <section className="dashboard-panels">
             <RevenueChart orders={orders} />
-          </div>
+            <div className="surface-card dashboard-alerts">
+              <div className="section-heading">
+                <div>
+                  <span className="eyebrow">Attention center</span>
+                  <h3 className="dashboard-section-title">Inventory alerts</h3>
+                </div>
+                <span className="glass-pill">
+                  <DollarSign size={14} />
+                  {currency(stats.recent_revenue)}
+                </span>
+              </div>
 
-          {/* Kanban Board */}
-          <div className="dashboard-kanban-section">
-            <h2 className="dashboard-kanban-section-title">Order Pipeline</h2>
-            <p className="dashboard-kanban-section-subtitle">Drag and drop orders between status columns to update state</p>
-            <KanbanBoard orders={orders} onStatusChange={handleStatusChange} />
-          </div>
+              <div className="dashboard-alerts__list">
+                {stats.low_stock.length === 0 ? (
+                  <div className="empty-state">
+                    <div>
+                      <h4>All inventory bands look healthy</h4>
+                      <p className="page-subtitle">No urgent replenishment items are showing up right now.</p>
+                    </div>
+                  </div>
+                ) : (
+                  stats.low_stock.map((item) => (
+                    <motion.div
+                      key={item.id}
+                      className="dashboard-alerts__item"
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                    >
+                      <div>
+                        <strong>{item.name}</strong>
+                        <p className="text-secondary text-mono">{item.sku}</p>
+                      </div>
+                      <div className="dashboard-alerts__meta">
+                        <span>{item.quantity} left</span>
+                        <strong>{currency(item.price)}</strong>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </div>
+          </section>
+
+          <section className="surface-card dashboard-pipeline">
+            <div className="section-heading">
+              <div>
+                <span className="eyebrow">Execution flow</span>
+                <h3 className="dashboard-section-title">Order pipeline</h3>
+                <p className="page-subtitle">Drag cards between columns to update status and keep the team aligned.</p>
+              </div>
+            </div>
+            <KanbanBoard
+              orders={orders}
+              onStatusChange={(id, status) => updateStatusMutation.mutate({ id, status })}
+            />
+          </section>
         </>
       )}
     </div>

@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.database import get_db
 from app.models.customer import Customer
 from app.models.order import Order
@@ -37,7 +38,12 @@ def get_stats(db: Session = Depends(get_db)):
     total_customers = db.execute(select(func.count(Customer.id))).scalar_one()
     total_orders = db.execute(select(func.count(Order.id))).scalar_one()
     low_stock = list(
-        db.execute(select(Product).where(Product.quantity < 10).order_by(Product.quantity, Product.id))
+        db.execute(
+            select(Product)
+            .where(Product.quantity < settings.low_stock_threshold)
+            .order_by(Product.quantity, Product.id)
+            .limit(settings.dashboard_low_stock_limit)
+        )
         .scalars()
         .all()
     )

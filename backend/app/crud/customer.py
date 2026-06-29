@@ -14,8 +14,8 @@ def get_by_email(db: Session, email: str) -> Customer | None:
     return db.execute(statement).scalar_one_or_none()
 
 
-def get_all(db: Session) -> list[Customer]:
-    statement = select(Customer).order_by(Customer.id)
+def get_all(db: Session, skip: int = 0, limit: int = 25) -> list[Customer]:
+    statement = select(Customer).order_by(Customer.id).offset(skip).limit(limit)
     return list(db.execute(statement).scalars().all())
 
 

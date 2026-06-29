@@ -2,6 +2,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from sqlalchemy import text
 
 from app.config import settings
 from app.database import Base, engine, SessionLocal
@@ -12,19 +14,24 @@ from app.seed import seed_database
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    Base.metadata.create_all(bind=engine)
-    # Auto-seed database on startup if empty
-    db = SessionLocal()
-    try:
-        product_count = db.query(Product).count()
-        if product_count == 0:
-            seed_database(db)
-    finally:
-        db.close()
+    if settings.create_tables_on_startup:
+        Base.metadata.create_all(bind=engine)
+
+    if settings.auto_seed:
+        db = SessionLocal()
+        try:
+            product_count = db.query(Product).count()
+            if product_count == 0:
+                seed_database(db)
+        finally:
+            db.close()
     yield
 
 
 app = FastAPI(title="IMS API v1.0", version="1.0.0", lifespan=lifespan)
+
+if settings.enable_gzip:
+    app.add_middleware(GZipMiddleware, minimum_size=settings.gzip_minimum_size)
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,4 +50,13 @@ app.include_router(seed.router, prefix="/seed", tags=["Seed"])
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "version": "1.0.0"}
+    db_status = "ok"
+    with engine.connect() as connection:
+        connection.execute(text("SELECT 1"))
+
+    return {
+        "status": "ok",
+        "database": db_status,
+        "environment": settings.app_env,
+        "version": "1.0.0",
+    }

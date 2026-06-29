@@ -10,3 +10,5 @@ __pycache__/
 *.md
 !README.md
 implementation-tracker.json
+.vscode/
+backend/Dockerfile.original
