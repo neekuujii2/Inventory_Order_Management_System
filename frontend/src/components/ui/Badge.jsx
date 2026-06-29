@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, CheckCircle2, Clock3, Slash } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Clock3, Loader2, Slash } from 'lucide-react';
 
 import './Badge.css';
 
@@ -8,6 +8,7 @@ const iconMap = {
   fulfilled: CheckCircle2,
   cancelled: Slash,
   'low-stock': AlertTriangle,
+  processing: Loader2,
 };
 
 export default function Badge({ variant = 'info', children }) {

@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Activity,
   BarChart3,
@@ -8,6 +9,7 @@ import {
   ChevronRight,
   FileSpreadsheet,
   LayoutDashboard,
+  LogOut,
   Menu,
   MoonStar,
   Package,
@@ -15,18 +17,35 @@ import {
   ShoppingCart,
   SunMedium,
   Users,
+  Warehouse,
   X,
+  Layers,
+  ArrowLeftRight,
+  RotateCcw,
+  ClipboardList,
+  Settings as SettingsIcon,
+  BellRing
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
+import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
 import './TopNav.css';
 
 const navItems = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboard, end: true },
   { label: 'Products', path: '/products', icon: Package },
+  { label: 'Categories', path: '/categories', icon: Layers },
   { label: 'Customers', path: '/customers', icon: Users },
-  { label: 'Orders', path: '/orders', icon: ShoppingCart },
+  { label: 'Suppliers', path: '/suppliers', icon: Users },
+  { label: 'Warehouses', path: '/warehouses', icon: Warehouse },
+  { label: 'Purchase Orders', path: '/purchase-orders', icon: ShoppingCart },
+  { label: 'Stock Transfers', path: '/transfers', icon: ArrowLeftRight },
+  { label: 'Returns', path: '/returns', icon: RotateCcw },
   { label: 'Reports', path: '/reports', icon: FileSpreadsheet },
   { label: 'Analytics', path: '/analytics', icon: BarChart3 },
+  { label: 'Audit Logs', path: '/audit-logs', icon: ClipboardList },
+  { label: 'Settings', path: '/settings', icon: SettingsIcon },
 ];
 
 function NavItems({ onNavigate }) {
@@ -49,14 +68,80 @@ function NavItems({ onNavigate }) {
 
 export default function TopNav({ theme, onToggleTheme, workspaceMeta }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const quickStats = useMemo(
-    () => [
-      { label: 'Service health', value: '99.94%', tone: 'var(--success)' },
-      { label: 'Open alerts', value: '07', tone: 'var(--warning)' },
-      { label: 'Automation jobs', value: '12', tone: 'var(--info)' },
-    ],
-    []
-  );
+  const [showNotifications, setShowNotifications] = useState(false);
+  const { user, logout } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Fetch Notifications
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: async () => {
+      const res = await api.get('/notifications');
+      return res.data;
+    },
+    refetchInterval: 10000, // Fallback poll 10s
+  });
+
+  // Mark Read Mutation
+  const markReadMutation = useMutation({
+    mutationFn: async (id) => {
+      await api.put(`/notifications/${id}/read`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    }
+  });
+
+  // Mark All Read Mutation
+  const markAllReadMutation = useMutation({
+    mutationFn: async () => {
+      await api.put('/notifications/read-all');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      toast.success('All notifications marked as read');
+    }
+  });
+
+  // Setup EventSource for Real-time alerts
+  useEffect(() => {
+    const sseUrl = `${api.defaults.baseURL || 'http://localhost:8000'}/notifications/stream`;
+    const sse = new EventSource(sseUrl);
+
+    sse.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.status === 'connected' || data.status === 'ping') return;
+        
+        // Trigger cache invalidation
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        queryClient.invalidateQueries({ queryKey: ['products'] });
+        queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
+        
+        // Notify user via toast
+        toast((t) => (
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <BellRing size={16} style={{ color: 'var(--accent)' }} />
+            New system activity received.
+          </span>
+        ));
+      } catch (err) {
+        // ignore JSON parse
+      }
+    };
+
+    sse.onerror = () => {
+      sse.close();
+    };
+
+    return () => {
+      sse.close();
+    };
+  }, [queryClient]);
+
+  const unreadCount = useMemo(() => 
+    notifications.filter(n => !n.is_read).length
+  , [notifications]);
 
   return (
     <>
@@ -71,11 +156,6 @@ export default function TopNav({ theme, onToggleTheme, workspaceMeta }) {
           </div>
         </div>
 
-        <div className="shell-search">
-          <Search size={17} />
-          <input type="text" placeholder="Search modules, SKUs, orders..." aria-label="Search modules" />
-        </div>
-
         <nav className="shell-nav__list" aria-label="Primary">
           <NavItems />
         </nav>
@@ -84,16 +164,8 @@ export default function TopNav({ theme, onToggleTheme, workspaceMeta }) {
           <div className="shell-nav__panel-header">
             <span className="glass-pill">
               <span className="status-dot" style={{ background: 'var(--success)' }} />
-              {workspaceMeta.syncLabel}
+              Live channel ready
             </span>
-          </div>
-          <div className="shell-nav__stats">
-            {quickStats.map((item) => (
-              <div key={item.label} className="shell-nav__stat">
-                <span>{item.label}</span>
-                <strong style={{ color: item.tone }}>{item.value}</strong>
-              </div>
-            ))}
           </div>
         </div>
       </aside>
@@ -110,7 +182,7 @@ export default function TopNav({ theme, onToggleTheme, workspaceMeta }) {
           </button>
 
           <div>
-            <span className="eyebrow">Operations workspace</span>
+            <span className="eyebrow">Enterprise Workspace</span>
             <div className="shell-topbar__title-row">
               <h1>Inventory command center</h1>
               <span className="glass-pill">{workspaceMeta.dateLabel}</span>
@@ -118,17 +190,76 @@ export default function TopNav({ theme, onToggleTheme, workspaceMeta }) {
           </div>
 
           <div className="shell-topbar__actions">
-            <button type="button" className="shell-icon-btn" aria-label="Notifications">
-              <Bell size={18} />
-            </button>
+            {/* Notification bell */}
+            <div className="notification-bell-container">
+              <button 
+                type="button" 
+                className={`shell-icon-btn ${unreadCount > 0 ? 'pulse-bell' : ''}`} 
+                aria-label="Notifications"
+                onClick={() => setShowNotifications(!showNotifications)}
+              >
+                <Bell size={18} />
+                {unreadCount > 0 && <span className="bell-badge">{unreadCount}</span>}
+              </button>
+
+              <AnimatePresence>
+                {showNotifications && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="notifications-dropdown surface-card"
+                  >
+                    <div className="noti-header">
+                      <strong>Notifications</strong>
+                      {unreadCount > 0 && (
+                        <button 
+                          type="button" 
+                          className="mark-all-btn" 
+                          onClick={() => markAllReadMutation.mutate()}
+                        >
+                          Mark all read
+                        </button>
+                      )}
+                    </div>
+                    <div className="noti-list">
+                      {notifications.length === 0 ? (
+                        <div className="noti-empty">
+                          <p>No new notifications</p>
+                        </div>
+                      ) : (
+                        notifications.map((noti) => (
+                          <div 
+                            key={noti.id} 
+                            className={`noti-item ${noti.is_read ? 'read' : 'unread'}`}
+                            onClick={() => !noti.is_read && markReadMutation.mutate(noti.id)}
+                          >
+                            <span className={`noti-dot ${noti.type}`} />
+                            <div className="noti-content">
+                              <strong>{noti.title}</strong>
+                              <p>{noti.message}</p>
+                              <span>{new Date(noti.created_at).toLocaleTimeString()}</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <button type="button" className="shell-icon-btn" onClick={onToggleTheme} aria-label="Toggle theme">
               {theme === 'dark' ? <SunMedium size={18} /> : <MoonStar size={18} />}
             </button>
+            <button type="button" className="shell-icon-btn" onClick={logout} aria-label="Sign out">
+              <LogOut size={18} />
+            </button>
             <div className="shell-user-chip">
-              <div className="shell-user-chip__avatar">IM</div>
+              <div className="shell-user-chip__avatar">{(user?.full_name || 'IM').slice(0, 2).toUpperCase()}</div>
               <div>
-                <strong>Inventory Ops</strong>
-                <span>Administrator</span>
+                <strong>{user?.full_name || 'Inventory Ops'}</strong>
+                <span className="role-label">{user?.role ? user.role.toUpperCase().replace(/_/g, ' ') : 'Viewer'}</span>
               </div>
             </div>
           </div>
@@ -168,11 +299,6 @@ export default function TopNav({ theme, onToggleTheme, workspaceMeta }) {
                 >
                   <X size={18} />
                 </button>
-              </div>
-
-              <div className="shell-search">
-                <Search size={17} />
-                <input type="text" placeholder="Search modules, SKUs, orders..." aria-label="Search modules" />
               </div>
 
               <nav className="shell-nav__list shell-nav__list--mobile" aria-label="Mobile primary">

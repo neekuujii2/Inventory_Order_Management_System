@@ -7,8 +7,8 @@ from sqlalchemy import text
 
 from app.config import settings
 from app.database import Base, engine, SessionLocal
-from app.models import Customer, Order, OrderItem, Product
-from app.routers import customers, dashboard, orders, products, seed
+from app.models import Customer, Order, OrderItem, Product, User
+from app.routers import auth, customers, dashboard, orders, products, seed, categories, warehouses, suppliers, purchase_orders, stock_transfers, returns, audit_logs, settings as app_settings, notifications
 from app.seed import seed_database
 
 
@@ -41,11 +41,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(products.router, prefix="/products", tags=["Products"])
 app.include_router(customers.router, prefix="/customers", tags=["Customers"])
 app.include_router(orders.router, prefix="/orders", tags=["Orders"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
 app.include_router(seed.router, prefix="/seed", tags=["Seed"])
+app.include_router(categories.router, tags=["Categories"])
+app.include_router(warehouses.router, tags=["Warehouses"])
+app.include_router(suppliers.router, tags=["Suppliers"])
+app.include_router(purchase_orders.router, tags=["Purchase Orders"])
+app.include_router(stock_transfers.router, tags=["Stock Transfers"])
+app.include_router(returns.router, tags=["Returns"])
+app.include_router(audit_logs.router, tags=["Audit Logs"])
+app.include_router(app_settings.router, tags=["Settings"])
+app.include_router(notifications.router, tags=["Notifications"])
 
 
 @app.get("/health")

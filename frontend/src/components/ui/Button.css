@@ -20,10 +20,11 @@
   box-shadow: none;
 }
 
-.btn-sm {
-  min-height: 42px;
-  padding: 0 0.95rem;
-  font-size: 0.9rem;
+.btn-sm,
+.btn-small {
+  min-height: 34px;
+  padding: 0 0.85rem;
+  font-size: 0.82rem;
 }
 
 .btn-md {

@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     create_tables_on_startup: bool = False
     enable_gzip: bool = True
     gzip_minimum_size: int = 1000
+    jwt_secret_key: str = "development-secret-key-change-me"
+    jwt_access_token_expires_minutes: int = 30
+    jwt_refresh_token_expires_days: int = 7
 
     model_config = SettingsConfigDict(
         env_file=".env",
