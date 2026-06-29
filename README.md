@@ -1,5 +1,11 @@
 # Enterprise Inventory & Order Management System (IMS)
 
+
+# 🚀 Technology Stack <p align="center"> <img src="https://skillicons.dev/icons?i=react,vite,python,fastapi,postgres,docker,nginx,git,github&perline=9" /> </p>
+<p align="center"> <img src="https://img.shields.io/badge/React_Query-FF4154?style=for-the-badge&logo=reactquery&logoColor=white" /> <img src="https://img.shields.io/badge/Zustand-443E38?style=for-the-badge" /> <img src="https://img.shields.io/badge/Recharts-FF6384?style=for-the-badge" /> <img src="https://img.shields.io/badge/SQLAlchemy-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white" /> <img src="https://img.shields.io/badge/Alembic-000000?style=for-the-badge" /> <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel" /> <img src="https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=black" /> </p> <p align="center"> <a href=https://github.com/neekuujii2> <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github"> </a> <a href=https://www.linkedin.com/in/neeraj-kumar-b12-datascienecist/> <img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin"> </a> <a href=https://neeraj-kumar-aidevportfolio.vercel.app/> <img src="https://img.shields.io/badge/Portfolio-000000?style=for-the-badge&logo=vercel"> </a> <a href="mailto:neerajkumar75260@email.com"> <img src="https://img.shields.io/badge/Email-EA4335?style=for-the-badge&logo=gmail"> </a> </p>
+
+
+
 A modern, full-stack enterprise-grade web application for managing products, customers, orders, multi-warehouse inventory, procurement, and more. Built with React, FastAPI, PostgreSQL, and Docker.
 
 **Live Demo**: [Deployed on Vercel + Render](https://inventory-order-management-system-ten-nu.vercel.app)
