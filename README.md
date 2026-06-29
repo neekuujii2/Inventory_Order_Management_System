@@ -1,53 +1,30 @@
-# 🚀 Technology Stack
+# Enterprise Inventory & Order Management System (IMS)
 
-<p align="center">
-  <img src="https://skillicons.dev/icons?i=react,vite,python,fastapi,postgres,docker,nginx,git,github&perline=9" />
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/React_Query-FF4154?style=for-the-badge&logo=reactquery&logoColor=white" />
-  <img src="https://img.shields.io/badge/Zustand-443E38?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Recharts-FF6384?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/SQLAlchemy-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white" />
-  <img src="https://img.shields.io/badge/Alembic-000000?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel" />
-  <img src="https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=black" />
-</p>
-
-<p align="center">
-  <a href=https://github.com/neekuujii2>
-    <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github">
-  </a>
-
-  <a href=https://www.linkedin.com/in/neeraj-kumar-b12-datascienecist/>
-    <img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin">
-  </a>
-
-  <a href=https://neeraj-kumar-aidevportfolio.vercel.app/>
-    <img src="https://img.shields.io/badge/Portfolio-000000?style=for-the-badge&logo=vercel">
-  </a>
-
-  <a href="mailto:neerajkumar75260@email.com">
-    <img src="https://img.shields.io/badge/Email-EA4335?style=for-the-badge&logo=gmail">
-  </a>
-</p>
-
-# Inventory & Order Management System (IMS)
-
-A modern, full-stack web application for managing products, customers, and orders. Built with React, FastAPI, PostgreSQL, and Docker.
+A modern, full-stack enterprise-grade web application for managing products, customers, orders, multi-warehouse inventory, procurement, and more. Built with React, FastAPI, PostgreSQL, and Docker.
 
 **Live Demo**: [Deployed on Vercel + Render](https://inventory-order-management-system-ten-nu.vercel.app)
 
 ## 🎯 Features
 
-- 📦 **Product Management** — Create, update, and delete products with inventory tracking
-- 👥 **Customer Database** — Manage customer information and contact details
-- 🛒 **Order Management** — Create and track orders with real-time status updates
-- 📊 **Dashboard** — Real-time KPIs, kanban board, and revenue charts
-- ⚠️ **Low Stock Alerts** — Automatic warnings for items below threshold
-- 🎨 **Premium UI** — Dark theme with teal accents, professional design
-- 📱 **Responsive Design** — Works perfectly on desktop, tablet, and mobile
-- 🚀 **Docker Ready** — Complete Docker Compose setup for local and cloud deployment
+### Core Operations
+- 📦 **Product Management** — Create, update, and delete products with SKU, barcode, and QR code tracking.
+- 👥 **Customer Management** — Manage customer information and contact details.
+- 🛒 **Order Management** — Create and track orders with real-time stock validation and multi-product handling.
+- 📊 **Dashboard & Analytics** — Real-time KPIs, 30-day revenue charts, and a Kanban board for order status.
+
+### Enterprise Modules
+- 🔐 **Authentication & Security** — Complete JWT-based auth with session management, multi-role access control (Super Admin, Admin, Manager, Staff, Viewer), and account lockout.
+- 🏢 **Multi-Warehouse Network** — Manage distributed inventory, track location capacity, and monitor utilization.
+- 🚚 **Stock Transfers** — Route inventory between warehouses with approval workflows and auto-reconciliation.
+- 🏭 **Procurement & Purchase Orders** — Manage suppliers, track outstanding payments, and issue multi-line purchase orders that automatically increment stock upon receipt.
+- 🔄 **Returns Management** — Process customer and supplier returns with automatic stock adjustments and reason tracking.
+- 📋 **Immutable Audit Logs** — Comprehensive, SOC 2 ready audit trails logging every CREATE, UPDATE, and DELETE action across the platform.
+- ⚙️ **Global Settings** — Centralized control panel for system-wide configurations (Security, Inventory, Appearance).
+
+### UI / UX
+- 🎨 **Premium Modern Design** — Glassmorphism, dynamic micro-animations, curated color palettes, and sleek dark mode.
+- 📱 **Responsive Design** — Fully optimized for desktop, tablet, and mobile viewing.
+- ⚡ **Real-time UX** — Toast notifications, skeleton loaders, and TanStack Table (IMSDataTable) with global search and column visibility.
 
 ---
 
@@ -58,14 +35,15 @@ A modern, full-stack web application for managing products, customers, and order
 - **Database**: PostgreSQL 15
 - **ORM**: SQLAlchemy 2.0
 - **Migration**: Alembic
+- **Authentication**: PyJWT, passlib (bcrypt)
 - **Deployment**: Docker, Render
 
 ### Frontend
 - **Framework**: React 19 + Vite
-- **Styling**: CSS Variables + Custom CSS (Design System)
-- **State Management**: React Query + Zustand
+- **Styling**: Vanilla CSS (CSS Variables, Flexbox/Grid, animations)
+- **State Management**: React Query (TanStack Query v5) + Zustand
 - **Forms**: React Hook Form
-- **UI Components**: Custom + react-hot-toast
+- **UI Components**: Custom Design System + Lucide React + react-hot-toast
 - **Charts**: Recharts
 - **Routing**: React Router v6
 - **Deployment**: Vercel
@@ -87,7 +65,7 @@ A modern, full-stack web application for managing products, customers, and order
 
 ```bash
 # Clone or navigate to project
-cd Inventory
+cd Inventory_Order_Management_System
 
 # Create .env from example
 cp .env.example .env
@@ -103,7 +81,7 @@ docker-compose up -d
 
 ### Option 2: Local Development
 
-**Backend:**
+**Backend Setup:**
 ```bash
 cd backend
 
@@ -114,25 +92,27 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Set up database
-export DATABASE_URL="postgresql://imsuser:password@localhost:5432/imsdb"
+# Create environment variables file
+cp .env.example .env
+# Edit .env and ensure DATABASE_URL is set correctly and JWT_SECRET_KEY is populated
 
-# Run migrations
+# Run migrations to setup database schema
 alembic upgrade head
 
 # Start server
 uvicorn app.main:app --reload
 ```
 
-**Frontend:**
+**Frontend Setup:**
 ```bash
 cd frontend
 
 # Install dependencies
 npm install
 
-# Create .env.local
+# Create environment variables file
 cp .env.example .env.local
+# Make sure VITE_API_URL points to your backend (default is http://localhost:8000)
 
 # Start dev server
 npm run dev
@@ -145,7 +125,7 @@ npm run dev
 
 ### Environment Variables
 
-Create `.env` file in root:
+Create `.env` file in root for Docker, or in respective directories for local dev:
 
 ```env
 # Database
@@ -159,40 +139,58 @@ CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 
 # Frontend API
 VITE_API_URL=http://localhost:8000
+
+# JWT Auth
+JWT_SECRET_KEY=super_secret_jwt_key_please_change_in_production
+JWT_ACCESS_TOKEN_EXPIRES_MINUTES=60
+JWT_REFRESH_TOKEN_EXPIRES_DAYS=7
 ```
 
-See [.env.example](.env.example) for all options.
+See `.env.example` inside the `backend` and root directories for all options.
 
 ---
 
 ## 📚 API Documentation
 
-Visit: http://localhost:8000/docs (Swagger UI)
+Once the backend is running, visit: **http://localhost:8000/docs** (Swagger UI) for interactive API documentation.
 
-### Main Endpoints
+### Core Endpoints
 
 ```
-GET  /health                    — Health check
-GET  /dashboard/stats           — Dashboard KPIs
-GET  /products                  — List all products
-POST /products                  — Create product
-PUT  /products/{id}             — Update product
-DELETE /products/{id}           — Delete product
-GET  /customers                 — List customers
-POST /customers                 — Create customer
-DELETE /customers/{id}          — Delete customer
-GET  /orders                    — List orders
-POST /orders                    — Create order (with transaction)
-GET  /orders/{id}               — Get order details
-DELETE /orders/{id}             — Cancel order
+POST /auth/login               — Authenticate and receive JWT tokens
+GET  /dashboard/stats          — Dashboard KPIs
+GET  /products                 — List all products
+GET  /categories               — List categories
+GET  /warehouses               — List warehouses and capacity
+GET  /purchase-orders          — List POs
+GET  /stock-transfers          — List internal stock transfers
+GET  /audit-logs               — Read-only audit trail
 ```
+*(All endpoints are protected and require a valid Bearer token)*
+
+---
+
+## 🔒 Default Demo Credentials
+
+During database initialization, the application seeds dummy users representing different roles. You can log in with:
+
+| Role | Email | Password |
+|------|-------|----------|
+| Super Admin | `super_admin@ims.com` | `password123` |
+| Admin | `admin@ims.com` | `password123` |
+| Manager | `manager@ims.com` | `password123` |
+| Warehouse Mgr | `warehouse_manager@ims.com` | `password123` |
+| Sales Mgr | `sales_manager@ims.com` | `password123` |
+| Purchase Mgr | `purchase_manager@ims.com` | `password123` |
+| Staff | `staff@ims.com` | `password123` |
+| Viewer | `viewer@ims.com` | `password123` |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-Inventory/
+Inventory_Order_Management_System/
 ├── backend/                    # FastAPI application
 │   ├── app/
 │   │   ├── main.py            # Entry point
@@ -200,26 +198,27 @@ Inventory/
 │   │   ├── database.py        # Database setup
 │   │   ├── models/            # SQLAlchemy models
 │   │   ├── schemas/           # Pydantic schemas
-│   │   ├── crud/              # CRUD operations
-│   │   └── routers/           # API routes
+│   │   ├── services/          # Business logic & Audit logic
+│   │   └── routers/           # API routes (Auth, Products, POs, etc.)
 │   ├── requirements.txt
 │   ├── Dockerfile
 │   └── alembic/               # Database migrations
 │
 ├── frontend/                   # React application
 │   ├── src/
-│   │   ├── pages/             # Page components
-│   │   ├── components/        # UI components
-│   │   ├── services/          # API layer
-│   │   ├── styles/            # Global styles
-│   │   ├── App.jsx            # Root
+│   │   ├── pages/             # All UI Pages
+│   │   ├── components/        # Reusable UI components (IMSDataTable, Modals)
+│   │   ├── context/           # AuthContext & state providers
+│   │   ├── services/          # Axios API service layer
+│   │   ├── styles/            # CSS variables and global theme
+│   │   ├── App.jsx            # Router setup
 │   │   └── main.jsx           # Entry point
 │   ├── package.json
 │   ├── vite.config.js
 │   └── Dockerfile
 │
 ├── docker-compose.yml         # Container orchestration
-├── .env.example               # Environment template
+├── .env.example               # Root Environment template
 ├── RENDER_DEPLOYMENT.md       # Cloud deployment guide
 └── README.md                  # This file
 ```
@@ -228,150 +227,38 @@ Inventory/
 
 ## 🚀 Deployment
 
-### Render (Recommended)
-
-See detailed guide in [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)
-
-Quick steps:
-1. Create PostgreSQL database
-2. Deploy backend (Docker)
-3. Deploy frontend (Static Site)
-4. Connect with environment variables
-
-**Available on free tier** (with limitations)
-
-### Other Platforms
-
-Works with AWS, Google Cloud, Azure, DigitalOcean, Heroku, etc.
-
----
-
-## 🔧 Development
-
-### Database Migrations
-
-```bash
-cd backend
-
-# Create new migration
-alembic revision --autogenerate -m "Description"
-
-# Apply migrations
-alembic upgrade head
-
-# Revert
-alembic downgrade -1
-```
-
-### Build for Production
-
-```bash
-# Backend
-cd backend
-docker build -t ims-backend:latest .
-
-# Frontend
-cd frontend
-npm run build
-# Output: dist/
-```
-
----
-
-## ✨ Key Features Explained
-
-### Dashboard
-- Real-time KPI cards (products, customers, orders, low stock)
-- Kanban board for order status management
-- 30-day revenue chart visualization
-
-### Products
-- Create, read, update, delete operations
-- SKU uniqueness validation
-- Automatic low-stock warnings
-
-### Orders
-- Multi-product order creation
-- Real-time stock validation
-- Automatic total calculation
-- Order history and tracking
-
-### UI/UX
-- Dark theme with teal accents
-- Responsive grid layouts
-- Skeleton loading states
-- Toast notifications
-- Smooth animations
+### Cloud Platforms (Render, Vercel, AWS, etc.)
+1. Deploy the backend API using Docker or native Python environment. Ensure `DATABASE_URL` is configured.
+2. Deploy the frontend React app as a static site (e.g., Vercel, Netlify). Set `VITE_API_URL` to point to the backend domain.
+3. Configure `CORS_ORIGINS` on the backend to accept requests from the frontend domain.
 
 ---
 
 ## 🐛 Troubleshooting
 
 ### "Unable to connect to server"
-- Check backend is running: `docker-compose ps`
-- Verify VITE_API_URL is correct
-- Check CORS_ORIGINS includes frontend URL
+- Check backend is running: `docker-compose ps` or check local logs.
+- Verify `VITE_API_URL` is exactly matching the backend URL (no trailing slash).
+- Check `CORS_ORIGINS` includes your exact frontend URL (e.g., `http://localhost:5173`).
 
 ### Database connection failed
-- Verify DATABASE_URL format
-- Check PostgreSQL is running
-- Verify credentials in .env
+- Verify `DATABASE_URL` format.
+- Check PostgreSQL is running.
 
-### CORS errors
-- Add frontend URL to CORS_ORIGINS
-- Use https:// for production domains
-- Restart backend after changes
-
-### Port conflicts
-- Change port in docker-compose.yml
-- Or kill process: `lsof -i :8000` → `kill -9 <PID>`
-
----
-
-## 📊 Performance Tips
-
-1. Add database indexes for frequent queries
-2. React Query caching is pre-configured
-3. Optimize product images before upload
-4. Consider pagination for large datasets
-5. Use React.memo for expensive components
-
----
-
-## 🔒 Security
-
-- ✅ Environment variables for secrets (no hardcoding)
-- ✅ Database user with limited permissions
-- ✅ CORS origin validation
-- ✅ Input validation on all endpoints
-- 📋 TODO: Add authentication (JWT)
-- 📋 TODO: Add rate limiting
-- 📋 TODO: Add data encryption
-
----
-
-## 📖 Docs
-
-- API Docs: http://localhost:8000/docs
-- Frontend env: See [frontend/.env.example](frontend/.env.example)
-- Backend env: See [backend/.env.example](backend/.env.example)
-- Deployment: See [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)
+### Invalid Credentials (Auth)
+- If `password123` doesn't work, ensure you ran the seed script or that `AUTO_SEED=true` is set on first launch.
+- Try creating a new account via the register page.
 
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] User authentication (login/register)
-- [ ] Order history and analytics
-- [ ] Inventory forecasting
-- [ ] Email notifications
-- [ ] Payment integration
-- [ ] Export reports (PDF/CSV)
-- [ ] Mobile app (React Native)
-- [ ] Real-time notifications (WebSocket)
+- [x] Phase 1: Core CRUD (Products, Customers, Orders)
+- [x] Phase 2: Enterprise SaaS (Auth, Warehouses, POs, Returns, Audit Logs)
+- [ ] Phase 3: Reporting & Analytics Export (PDF/CSV)
+- [ ] Phase 4: Real-time Notifications (WebSockets)
+- [ ] Phase 5: Mobile Application (React Native)
 
 ---
 
 **Built with ❤️ using React, FastAPI, and PostgreSQL**
-
-For help, check the troubleshooting section or review application logs: `docker-compose logs -f`

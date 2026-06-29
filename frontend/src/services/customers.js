@@ -1,7 +1,7 @@
 import api from './api';
 
-export const getCustomers = async () => {
-  const response = await api.get('/customers/');
+export const getCustomers = async (params = { limit: 100 }) => {
+  const response = await api.get('/customers/', { params });
   return response.data;
 };
 

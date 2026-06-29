@@ -1,17 +1,23 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+
 import './MetricCard.css';
 
-export default function MetricCard({ label, value, subtext, icon, type = 'info' }) {
+export default function MetricCard({ label, value, subtext, icon, type = 'info', trend }) {
   return (
-    <div className="metric-card">
-      <div className="metric-card-header">
-        <div className={`metric-card-icon-container ${type}`} aria-hidden="true">
-          {icon}
-        </div>
-        <span className="metric-card-label">{label}</span>
+    <motion.div
+      className={`metric-card metric-card--${type}`}
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+    >
+      <div className="metric-card__header">
+        <div className="metric-card__icon">{icon}</div>
+        {trend ? <span className="glass-pill">{trend}</span> : null}
       </div>
-      <div className="metric-card-value">{value}</div>
-      {subtext && <div className="metric-card-subtext">{subtext}</div>}
-    </div>
+      <strong className="metric-card__value">{value}</strong>
+      <span className="metric-card__label">{label}</span>
+      {subtext ? <p className="metric-card__subtext">{subtext}</p> : null}
+    </motion.div>
   );
 }

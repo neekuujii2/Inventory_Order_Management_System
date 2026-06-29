@@ -1,21 +1,25 @@
 import React from 'react';
+import { ShieldCheck, Zap } from 'lucide-react';
+
 import './Footer.css';
 
 export default function Footer() {
   return (
-    <footer className="footer">
-      <div className="footer-container">
-        <div className="footer-logo">
-          <span className="footer-logo-icon"></span>
-          <span>[IMS]</span>
+    <footer className="shell-footer container">
+      <div className="shell-footer__card">
+        <div>
+          <strong>Atlas Inventory Platform</strong>
+          <span>Operational intelligence for purchasing, stock control, and order fulfillment.</span>
         </div>
-        <div className="footer-links">
-          <a href="#privacy" className="footer-link">Privacy Policy</a>
-          <a href="#terms" className="footer-link">Terms of Service</a>
-          <a href="#support" className="footer-link">Support</a>
-        </div>
-        <div className="footer-copyright">
-          &copy; {new Date().getFullYear()} Inventory Management System. All rights reserved.
+        <div className="shell-footer__meta">
+          <span className="glass-pill">
+            <ShieldCheck size={14} />
+            SOC-ready workflow
+          </span>
+          <span className="glass-pill">
+            <Zap size={14} />
+            Real-time dashboard
+          </span>
         </div>
       </div>
     </footer>

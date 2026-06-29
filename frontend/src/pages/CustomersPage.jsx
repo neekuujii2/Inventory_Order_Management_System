@@ -1,250 +1,273 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useDeferredValue, useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
+import { Mail, Plus, Search, Trash2, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { getCustomers, createCustomer, deleteCustomer } from '../services/customers';
+
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import { SkeletonTable } from '../components/ui/Skeleton';
+import { createCustomer, deleteCustomer, getCustomers } from '../services/customers';
 import './CustomersPage.css';
 
-// SVG Icons
-const SearchIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="8"></circle>
-    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-  </svg>
-);
-
-const DeleteIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="3 6 5 6 21 6"></polyline>
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-    <line x1="10" y1="11" x2="10" y2="17"></line>
-    <line x1="14" y1="11" x2="14" y2="17"></line>
-  </svg>
-);
+function CustomerField({ label, error, children }) {
+  return (
+    <div className="form-group">
+      {children}
+      <span className="floating-label">{label}</span>
+      {error ? <p className="form-error">{error}</p> : null}
+    </div>
+  );
+}
 
 export default function CustomersPage() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
+  const deferredSearch = useDeferredValue(searchTerm);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm();
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
-
-  // Fetch customers
   const { data: customers = [], isLoading, isError } = useQuery({
     queryKey: ['customers'],
-    queryFn: getCustomers,
+    queryFn: () => getCustomers({ limit: 100 }),
   });
 
-  // Mutations
   const createMutation = useMutation({
     mutationFn: createCustomer,
     onSuccess: (data) => {
-      toast.success(`Customer "${data.full_name}" registered successfully`);
-      queryClient.invalidateQueries(['customers']);
-      queryClient.invalidateQueries(['dashboardStats']);
+      toast.success(`Customer "${data.full_name}" registered`);
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
       setIsAddOpen(false);
       reset();
     },
-    onError: (err) => {
-      toast.error(err.message || 'Failed to register customer');
-    },
+    onError: (error) => toast.error(error.message || 'Failed to register customer'),
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteCustomer,
     onSuccess: () => {
-      toast.success('Customer profile deleted successfully');
-      queryClient.invalidateQueries(['customers']);
-      queryClient.invalidateQueries(['dashboardStats']);
+      toast.success('Customer removed');
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
       setIsDeleteOpen(false);
       setSelectedCustomer(null);
     },
-    onError: (err) => {
-      toast.error(err.message || 'Failed to delete customer');
-    },
+    onError: (error) => toast.error(error.message || 'Failed to delete customer'),
   });
 
-  const onAddSubmit = (data) => {
-    createMutation.mutate({
-      full_name: data.fullName,
-      email: data.email,
-      phone: data.phone || null,
+  const filteredCustomers = useMemo(() => {
+    const term = deferredSearch.trim().toLowerCase();
+    return customers.filter((customer) => {
+      if (!term) return true;
+      return customer.full_name.toLowerCase().includes(term) || customer.email.toLowerCase().includes(term);
     });
-  };
+  }, [customers, deferredSearch]);
 
-  const onDeleteConfirm = () => {
-    if (selectedCustomer) {
-      deleteMutation.mutate(selectedCustomer.id);
-    }
-  };
-
-  const openDeleteModal = (customer) => {
-    setSelectedCustomer(customer);
-    setIsDeleteOpen(true);
-  };
-
-  // Filter customers by name or email
-  const filteredCustomers = customers.filter((customer) => {
-    const term = searchTerm.toLowerCase();
+  if (isError) {
     return (
-      customer.full_name.toLowerCase().includes(term) ||
-      customer.email.toLowerCase().includes(term)
+      <div className="container page-stack">
+        <div className="surface-card error-state">
+          <div>
+            <h2>Customer records could not be loaded</h2>
+            <p className="page-subtitle">Please verify the API connection and refresh the page.</p>
+          </div>
+        </div>
+      </div>
     );
-  });
+  }
 
   return (
-    <div className="container">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Customers</h1>
-          <p className="text-secondary" style={{ marginTop: '0.25rem' }}>View client directories and history profiles</p>
+    <div className="container page-stack">
+      <section className="surface-card hero-banner">
+        <div className="hero-grid">
+          <div>
+            <span className="eyebrow">Customer intelligence</span>
+            <h2 className="section-title">Keep customer records clean, searchable, and ready for every sales or service interaction.</h2>
+            <p className="page-subtitle">
+              Centralize buyer details, preserve contact hygiene, and give operators a faster way to onboard or retire customer profiles.
+            </p>
+          </div>
+          <div className="mini-stat-grid">
+            <div className="mini-stat">
+              <span className="text-secondary">Visible accounts</span>
+              <span className="mini-stat-value">{filteredCustomers.length}</span>
+            </div>
+            <div className="mini-stat">
+              <span className="text-secondary">Directory size</span>
+              <span className="mini-stat-value">{customers.length}</span>
+            </div>
+          </div>
         </div>
-        <Button variant="primary" onClick={() => setIsAddOpen(true)}>
-          Register Customer
-        </Button>
-      </div>
+      </section>
 
-      <div className="search-bar-container">
-        <div className="search-input-wrapper">
-          <SearchIcon />
-          <input
-            type="text"
-            className="search-input"
-            placeholder="Search by name or email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      <section className="surface-card toolbar-card">
+        <div className="toolbar-row">
+          <div className="search-shell">
+            <Search size={18} />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search names and email addresses"
+              aria-label="Search customers"
+            />
+          </div>
+          <Button variant="primary" icon={<Plus size={18} />} onClick={() => setIsAddOpen(true)}>
+            Register customer
+          </Button>
         </div>
-      </div>
+      </section>
 
       {isLoading ? (
-        <SkeletonTable rows={6} cols={5} />
-      ) : isError ? (
-        <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)' }}>
-          <h2 style={{ color: 'var(--danger)', marginBottom: '0.5rem' }}>Failed to Load Customers</h2>
-          <p className="text-secondary">Please check if the backend API server is running.</p>
-        </div>
-      ) : filteredCustomers.length === 0 ? (
-        <div style={{ padding: '3rem', textAlign: 'center', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)' }}>
-          <p className="text-secondary" style={{ fontSize: '1rem' }}>No customers found.</p>
-        </div>
+        <SkeletonTable rows={6} cols={6} />
       ) : (
-        <div className="table-wrapper customers-table-wrapper">
-          <table className="ims-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Full Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Joined Date</th>
-                <th style={{ width: '80px', textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCustomers.map((customer) => {
-                const joinedDate = customer.created_at
-                  ? new Date(customer.created_at).toLocaleDateString(undefined, {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })
-                  : 'N/A';
-                return (
-                  <tr key={customer.id}>
-                    <td className="text-mono">#{customer.id}</td>
-                    <td style={{ fontWeight: 500 }}>{customer.full_name}</td>
-                    <td>{customer.email}</td>
-                    <td className="text-mono">{customer.phone || '—'}</td>
-                    <td>{joinedDate}</td>
-                    <td>
-                      <div className="table-actions" style={{ justifyContent: 'flex-end' }}>
-                        <button
-                          className="action-icon-btn delete"
-                          onClick={() => openDeleteModal(customer)}
-                          aria-label={`Delete ${customer.full_name}`}
-                        >
-                          <DeleteIcon />
-                        </button>
+        <section className="surface-card table-card">
+          <div className="table-meta">
+            <div>
+              <strong>Customer directory</strong>
+              <p className="text-secondary">Contact details, onboarding dates, and quick profile actions.</p>
+            </div>
+            <span className="glass-pill">
+              <Users size={14} />
+              {filteredCustomers.length} profiles
+            </span>
+          </div>
+          <div className="table-wrapper">
+            <table className="ims-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCustomers.length === 0 ? (
+                  <tr>
+                    <td colSpan="6">
+                      <div className="empty-state">
+                        <div>
+                          <h3>No customers match this search</h3>
+                          <p className="page-subtitle">Try searching by another email address or customer name.</p>
+                        </div>
                       </div>
                     </td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  filteredCustomers.map((customer) => (
+                    <tr key={customer.id}>
+                      <td className="text-mono">#{customer.id}</td>
+                      <td><strong>{customer.full_name}</strong></td>
+                      <td>{customer.email}</td>
+                      <td>{customer.phone || 'Not provided'}</td>
+                      <td>
+                        {customer.created_at
+                          ? new Date(customer.created_at).toLocaleDateString(undefined, {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            })
+                          : 'N/A'}
+                      </td>
+                      <td>
+                        <div className="table-actions">
+                          <button
+                            type="button"
+                            className="action-icon-btn delete"
+                            aria-label={`Delete ${customer.full_name}`}
+                            onClick={() => {
+                              setSelectedCustomer(customer);
+                              setIsDeleteOpen(true);
+                            }}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
       )}
 
-      {/* Add Customer Modal */}
-      <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title="Register Customer">
-        <form onSubmit={handleSubmit(onAddSubmit)}>
-          <div className="form-group">
-            <label className="form-label">Full Name</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="e.g. John Doe"
-              {...register('fullName', { required: 'Full name is required' })}
-            />
-            {errors.fullName && <p className="form-error">{errors.fullName.message}</p>}
+      <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title="Register customer">
+        <form
+          className="page-stack"
+          onSubmit={handleSubmit((data) =>
+            createMutation.mutate({
+              full_name: data.fullName,
+              email: data.email,
+              phone: data.phone || null,
+            })
+          )}
+        >
+          <div className="form-grid">
+            <CustomerField label="Full name" error={errors.fullName?.message}>
+              <input className="control-input" placeholder=" " {...register('fullName', { required: 'Full name is required' })} />
+            </CustomerField>
+            <CustomerField label="Email address" error={errors.email?.message}>
+              <input
+                type="email"
+                className="control-input"
+                placeholder=" "
+                {...register('email', {
+                  required: 'Email is required',
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: 'Enter a valid email address',
+                  },
+                })}
+              />
+            </CustomerField>
+            <CustomerField label="Phone number" error={errors.phone?.message}>
+              <input className="control-input" placeholder=" " {...register('phone')} />
+            </CustomerField>
+            <div className="surface-card customers-page__helper">
+              <Mail size={18} />
+              <div>
+                <strong>Best practice</strong>
+                <p className="text-secondary">Store a real team inbox and a service phone number so orders can be resolved quickly.</p>
+              </div>
+            </div>
           </div>
-
-          <div className="form-group">
-            <label className="form-label">Email Address</label>
-            <input
-              type="email"
-              className="form-control"
-              placeholder="e.g. john@example.com"
-              {...register('email', {
-                required: 'Email is required',
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Invalid email address',
-                },
-              })}
-            />
-            {errors.email && <p className="form-error">{errors.email.message}</p>}
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Phone Number (Optional)</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="e.g. +1 (555) 123-4567"
-              {...register('phone')}
-            />
-          </div>
-
-          <div className="form-actions">
+          <div className="toolbar-row customers-page__actions">
             <Button variant="ghost" onClick={() => setIsAddOpen(false)}>
               Cancel
             </Button>
             <Button type="submit" variant="primary" loading={createMutation.isPending}>
-              Register
+              Register customer
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* Delete Confirmation Modal */}
-      <Modal isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} title="Delete Customer">
-        <p style={{ fontSize: '0.95rem', lineHeight: '1.5', color: 'var(--text-primary)' }}>
-          Are you sure you want to delete the profile for <strong>{selectedCustomer?.full_name}</strong>? This will fail if they have active orders associated with them.
-        </p>
-        <div className="form-actions" style={{ marginTop: '1.5rem' }}>
-          <Button variant="ghost" onClick={() => setIsDeleteOpen(false)}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={onDeleteConfirm} loading={deleteMutation.isPending}>
-            Delete
-          </Button>
+      <Modal isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} title="Delete customer">
+        <div className="page-stack">
+          <p className="page-subtitle">
+            Remove <strong>{selectedCustomer?.full_name}</strong> from the directory? This may fail when active orders still reference the account.
+          </p>
+          <div className="toolbar-row customers-page__actions">
+            <Button variant="ghost" onClick={() => setIsDeleteOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="danger" loading={deleteMutation.isPending} onClick={() => deleteMutation.mutate(selectedCustomer.id)}>
+              Delete customer
+            </Button>
+          </div>
         </div>
       </Modal>
     </div>

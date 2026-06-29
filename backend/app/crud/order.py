@@ -21,8 +21,8 @@ def _order_detail_query():
     )
 
 
-def get_all(db: Session) -> list[Order]:
-    statement = _order_detail_query()
+def get_all(db: Session, skip: int = 0, limit: int = 25) -> list[Order]:
+    statement = _order_detail_query().offset(skip).limit(limit)
     return list(db.execute(statement).scalars().unique().all())
 
 

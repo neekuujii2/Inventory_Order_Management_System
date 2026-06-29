@@ -1,89 +1,39 @@
-.footer {
-  height: 56px;
-  background: var(--bg-surface);
-  border-top: 1px solid var(--border);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
+.shell-footer {
+  padding-bottom: 1rem;
 }
 
-.footer-container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 var(--space-lg);
+.shell-footer__card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-family: var(--font-body);
-  font-size: 13px;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.45);
   color: var(--text-secondary);
 }
 
-.footer-logo {
-  font-family: var(--font-logo);
-  font-size: 14px;
+[data-theme='dark'] .shell-footer__card {
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.shell-footer__card strong {
+  display: block;
+  margin-bottom: 0.25rem;
   color: var(--text-primary);
-  font-weight: 400;
+  font-family: var(--font-heading);
+}
+
+.shell-footer__meta {
   display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 0.65rem;
 }
 
-.footer-logo-icon {
-  width: 12px;
-  height: 12px;
-  background: var(--accent);
-  border-radius: 2px;
-}
-
-.footer-links {
-  display: flex;
-  gap: var(--space-lg);
-  flex: 1;
-  justify-content: center;
-}
-
-.footer-link {
-  color: var(--text-secondary);
-  text-decoration: none;
-  transition: color var(--transition-fast);
-}
-
-.footer-link:hover {
-  color: var(--accent);
-}
-
-.footer-copyright {
-  color: var(--text-secondary);
-  font-size: 12px;
-  flex-shrink: 0;
-}
-
-@media (max-width: 768px) {
-  .footer {
-    height: auto;
-    padding: var(--space-lg) 0;
-  }
-
-  .footer-container {
+@media (max-width: 720px) {
+  .shell-footer__card {
     flex-direction: column;
-    gap: var(--space-md-sm);
-    text-align: center;
-    padding: var(--space-md);
-  }
-
-  .footer-links {
-    order: 2;
-  }
-
-  .footer-logo {
-    order: 1;
-  }
-
-  .footer-copyright {
-    order: 3;
-    margin-top: var(--space-md-sm);
+    align-items: flex-start;
   }
 }

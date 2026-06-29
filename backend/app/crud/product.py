@@ -14,8 +14,8 @@ def get_by_sku(db: Session, sku: str) -> Product | None:
     return db.execute(statement).scalar_one_or_none()
 
 
-def get_all(db: Session) -> list[Product]:
-    statement = select(Product).order_by(Product.id)
+def get_all(db: Session, skip: int = 0, limit: int = 25) -> list[Product]:
+    statement = select(Product).order_by(Product.id).offset(skip).limit(limit)
     return list(db.execute(statement).scalars().all())
 
 

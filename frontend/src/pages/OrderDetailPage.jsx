@@ -1,57 +1,40 @@
 import React from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, CheckCircle2, XCircle } from 'lucide-react';
+import { Link, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { getOrder, updateOrderStatus } from '../services/orders';
-import Button from '../components/ui/Button';
+
 import Badge from '../components/ui/Badge';
+import Button from '../components/ui/Button';
+import { getOrder, updateOrderStatus } from '../services/orders';
 import './OrderDetailPage.css';
 
 export default function OrderDetailPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Fetch single order details
   const { data: order, isLoading, isError } = useQuery({
     queryKey: ['order', id],
     queryFn: () => getOrder(id),
-    enabled: !!id,
+    enabled: Boolean(id),
   });
 
-  // Cancel order mutation
-  const cancelOrderMutation = useMutation({
-    mutationFn: () => updateOrderStatus(id, 'cancelled'),
+  const statusMutation = useMutation({
+    mutationFn: (status) => updateOrderStatus(id, status),
     onSuccess: (data) => {
-      toast.success(`Order #${data.id} cancelled successfully`);
-      queryClient.invalidateQueries(['order', id]);
-      queryClient.invalidateQueries(['orders']);
-      queryClient.invalidateQueries(['dashboardStats']);
+      toast.success(`Order #${data.id} marked ${data.status}`);
+      queryClient.invalidateQueries({ queryKey: ['order', id] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
     },
-    onError: (err) => {
-      toast.error(err.message || 'Failed to cancel order');
-    },
-  });
-
-  // Fulfill order mutation (bonus premium feature!)
-  const fulfillOrderMutation = useMutation({
-    mutationFn: () => updateOrderStatus(id, 'fulfilled'),
-    onSuccess: (data) => {
-      toast.success(`Order #${data.id} fulfilled successfully`);
-      queryClient.invalidateQueries(['order', id]);
-      queryClient.invalidateQueries(['orders']);
-      queryClient.invalidateQueries(['dashboardStats']);
-    },
-    onError: (err) => {
-      toast.error(err.message || 'Failed to fulfill order');
-    },
+    onError: (error) => toast.error(error.message || 'Failed to update order'),
   });
 
   if (isLoading) {
     return (
-      <div className="container">
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
-          <div className="btn-spinner" style={{ width: '2rem', height: '2rem' }}></div>
+      <div className="container page-stack">
+        <div className="surface-card empty-state">
+          <div className="btn-spinner" style={{ width: '2rem', height: '2rem' }} />
         </div>
       </div>
     );
@@ -59,13 +42,16 @@ export default function OrderDetailPage() {
 
   if (isError || !order) {
     return (
-      <div className="container">
-        <Link to="/orders" className="detail-back-link">
-          &larr; Back to Orders
+      <div className="container page-stack">
+        <Link to="/orders" className="glass-pill order-detail__back">
+          <ArrowLeft size={14} />
+          Back to orders
         </Link>
-        <div style={{ padding: '2rem', marginTop: '1rem', textAlign: 'center', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)' }}>
-          <h2 style={{ color: 'var(--danger)', marginBottom: '0.5rem' }}>Order Not Found</h2>
-          <p className="text-secondary">The requested order #{id} does not exist or could not be loaded.</p>
+        <div className="surface-card error-state">
+          <div>
+            <h2>Order not found</h2>
+            <p className="page-subtitle">The requested order could not be loaded.</p>
+          </div>
         </div>
       </div>
     );
@@ -78,119 +64,107 @@ export default function OrderDetailPage() {
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        timeZoneName: 'short',
       })
     : 'N/A';
 
-  const isPending = order.status === 'pending';
-
   return (
-    <div className="container">
-      <Link to="/orders" className="detail-back-link">
-        &larr; Back to Orders
+    <div className="container page-stack">
+      <Link to="/orders" className="glass-pill order-detail__back">
+        <ArrowLeft size={14} />
+        Back to orders
       </Link>
 
-      <div className="detail-header">
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <h1 className="page-title" style={{ fontFamily: 'var(--font-mono)' }}>Order #{order.id}</h1>
-            <Badge variant={order.status}>{order.status}</Badge>
+      <section className="surface-card hero-banner">
+        <div className="hero-grid">
+          <div>
+            <span className="eyebrow">Order detail</span>
+            <div className="order-detail__title-row">
+              <h2 className="section-title">Order #{order.id}</h2>
+              <Badge variant={order.status}>{order.status}</Badge>
+            </div>
+            <p className="page-subtitle">Placed on {orderDate} by {order.customer_name}.</p>
           </div>
-          <p className="text-secondary" style={{ marginTop: '0.25rem' }}>Placed on {orderDate}</p>
+          {order.status === 'pending' ? (
+            <div className="hero-actions order-detail__hero-actions">
+              <Button variant="ghost" icon={<XCircle size={16} />} onClick={() => statusMutation.mutate('cancelled')}>
+                Cancel order
+              </Button>
+              <Button variant="primary" icon={<CheckCircle2 size={16} />} onClick={() => statusMutation.mutate('fulfilled')}>
+                Fulfill order
+              </Button>
+            </div>
+          ) : null}
         </div>
-        
-        {isPending && (
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <Button
-              variant="ghost"
-              onClick={() => cancelOrderMutation.mutate()}
-              loading={cancelOrderMutation.isPending}
-            >
-              Cancel Order
-            </Button>
-            <Button
-              variant="primary"
-              onClick={() => fulfillOrderMutation.mutate()}
-              loading={fulfillOrderMutation.isPending}
-            >
-              Fulfill Order
-            </Button>
-          </div>
-        )}
-      </div>
+      </section>
 
-      <div className="detail-grid">
-        {/* Customer Sidebar Info */}
-        <div className="info-card">
-          <h3 className="info-title">Client Details</h3>
-          <div className="info-group">
-            <div className="info-label">Customer Name</div>
-            <div className="info-value">{order.customer_name}</div>
-          </div>
-          <div className="info-group">
-            <div className="info-label">Customer ID</div>
-            <div className="info-value mono">#{order.customer_id}</div>
-          </div>
-          <div className="info-group" style={{ borderTop: '1px solid rgba(71, 85, 105, 0.2)', paddingTop: '1rem', marginTop: '1rem' }}>
-            <div className="info-label">Payment Summary</div>
-            <div className="info-label" style={{ fontSize: '0.75rem', marginTop: '0.5rem' }}>Total Amount Charged</div>
-            <div className="info-value price">
-              ${parseFloat(order.total_amount).toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+      <div className="order-detail__layout">
+        <aside className="surface-card order-detail__sidebar">
+          <span className="eyebrow">Client and billing</span>
+          <div className="order-detail__info-list">
+            <div>
+              <span>Customer</span>
+              <strong>{order.customer_name}</strong>
+            </div>
+            <div>
+              <span>Customer ID</span>
+              <strong className="text-mono">#{order.customer_id}</strong>
+            </div>
+            <div>
+              <span>Total amount</span>
+              <strong>
+                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(order.total_amount))}
+              </strong>
             </div>
           </div>
-        </div>
+        </aside>
 
-        {/* Line Items Table */}
-        <div className="table-wrapper">
-          <table className="ims-table">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Quantity</th>
-                <th>Unit Price</th>
-                <th style={{ textAlign: 'right' }}>Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              {order.items.map((item, index) => (
-                <tr key={index}>
+        <section className="surface-card table-card">
+          <div className="table-meta">
+            <div>
+              <strong>Order line items</strong>
+              <p className="text-secondary">Granular item pricing, quantities, and per-line subtotals.</p>
+            </div>
+          </div>
+          <div className="table-wrapper">
+            <table className="ims-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Quantity</th>
+                  <th>Unit price</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {order.items.map((item) => (
+                  <tr key={`${item.product_id}-${item.product_name}`}>
+                    <td>
+                      <strong>{item.product_name}</strong>
+                      <div className="text-secondary text-mono">#{item.product_id}</div>
+                    </td>
+                    <td>{item.quantity}</td>
+                    <td>
+                      {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(item.unit_price))}
+                    </td>
+                    <td>
+                      {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(item.unit_price) * item.quantity)}
+                    </td>
+                  </tr>
+                ))}
+                <tr>
+                  <td><strong>Total</strong></td>
+                  <td />
+                  <td />
                   <td>
-                    <div style={{ fontWeight: 500 }}>{item.product_name}</div>
-                    <div className="text-secondary" style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)' }}>
-                      ID: #{item.product_id}
-                    </div>
-                  </td>
-                  <td className="text-mono">{item.quantity}</td>
-                  <td className="text-mono">
-                    ${parseFloat(item.unit_price).toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </td>
-                  <td className="text-mono table-price" style={{ textAlign: 'right' }}>
-                    ${(parseFloat(item.unit_price) * item.quantity).toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
+                    <strong>
+                      {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(order.total_amount))}
+                    </strong>
                   </td>
                 </tr>
-              ))}
-              <tr className="total-row">
-                <td colSpan="2" style={{ fontWeight: 700 }}>Total</td>
-                <td></td>
-                <td className="text-mono table-price" style={{ textAlign: 'right', fontWeight: 700 }}>
-                  ${parseFloat(order.total_amount).toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
     </div>
   );
