@@ -27,13 +27,7 @@ class UserLogin(BaseModel):
     remember_me: bool = False
 
 
-class TokenResponse(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
-    expires_in: int
-    verification_code: str | None = None
-    user: "UserResponse"
+
 
 
 class UserResponse(BaseModel):
@@ -47,6 +41,13 @@ class UserResponse(BaseModel):
     last_login_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int
+    verification_code: str | None = None
+    user: "UserResponse"    
 
 
 class RefreshTokenRequest(BaseModel):
