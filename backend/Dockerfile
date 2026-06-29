@@ -29,7 +29,6 @@ RUN addgroup --system app && adduser --system --ingroup app app
 
 COPY --from=builder /opt/venv /opt/venv
 COPY app ./app
-COPY .env.example ./.env.example
 
 USER app
 
